@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Warehouse DBMS</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">DBMS Review 1</p>
+      <h1>Smart Warehouse & Inventory Logistics</h1>
+    </div>
+    <div class="status" id="refreshStatus">Live stock monitor</div>
+  </header>
+
+  <main>
+    <section class="metrics" aria-label="Warehouse metrics">
+      <article>
+        <span>Products</span>
+        <strong id="metricProducts">0</strong>
+      </article>
+      <article>
+        <span>Active Warehouses</span>
+        <strong id="metricWarehouses">0</strong>
+      </article>
+      <article>
+        <span>Total Units</span>
+        <strong id="metricUnits">0</strong>
+      </article>
+      <article class="warn">
+        <span>Low Stock Alerts</span>
+        <strong id="metricLowStock">0</strong>
+      </article>
+      <article class="danger">
+        <span>Expiry Alerts</span>
+        <strong id="metricExpiry">0</strong>
+      </article>
+    </section>
+
+    <section class="workspace">
+      <div class="panel action-panel">
+        <div class="section-head">
+          <h2>Product Movement</h2>
+          <p>Receiving, shipping, and transfer transactions update inventory immediately.</p>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="receive">Receive</button>
+          <button class="tab" data-tab="ship">Ship</button>
+          <button class="tab" data-tab="transfer">Transfer</button>
+        </div>
+
+        <form id="receiveForm" class="movement-form active">
+          <label>Product<select name="product_id" required></select></label>
+          <label>Warehouse<select name="warehouse_id" required></select></label>
+          <label>Quantity<input name="quantity" type="number" min="1" value="25" required></label>
+          <label>Bin Location<input name="bin_location" placeholder="A1-R2-B03" required></label>
+          <label>Expiry Date<input name="expiry_date" type="date"></label>
+          <label class="wide">Reference<input name="reference_note" placeholder="Supplier receipt"></label>
+          <button type="submit">Receive Stock</button>
+        </form>
+
+        <form id="shipForm" class="movement-form">
+          <label>Product<select name="product_id" required></select></label>
+          <label>Warehouse<select name="warehouse_id" required></select></label>
+          <label>Quantity<input name="quantity" type="number" min="1" value="10" required></label>
+          <label class="wide">Customer<input name="customer_name" placeholder="Customer / outlet name" required></label>
+          <button type="submit">Ship Order</button>
+        </form>
+
+        <form id="transferForm" class="movement-form">
+          <label>Product<select name="product_id" required></select></label>
+          <label>From<select name="source_warehouse_id" required></select></label>
+          <label>To<select name="destination_warehouse_id" required></select></label>
+          <label>Quantity<input name="quantity" type="number" min="1" value="15" required></label>
+          <label>Destination Bin<input name="bin_location" placeholder="M1-R3-B04" required></label>
+          <label class="wide">Reference<input name="reference_note" placeholder="Inter-warehouse transfer"></label>
+          <button type="submit">Transfer Stock</button>
+        </form>
+        <p id="formMessage" class="form-message" aria-live="polite"></p>
+      </div>
+
+      <div class="panel">
+        <div class="section-head">
+          <h2>Shelf-Space Utilization</h2>
+          <p>Capacity is compared with current units stored in each location.</p>
+        </div>
+        <div id="utilizationList" class="utilization-list"></div>
+      </div>
+    </section>
+
+    <section class="grid-two">
+      <div class="panel">
+        <div class="section-head">
+          <h2>Stock Watch</h2>
+          <p>Rows are prioritized by low stock and expiry risk.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Warehouse</th>
+                <th>Qty</th>
+                <th>Bin</th>
+                <th>State</th>
+              </tr>
+            </thead>
+            <tbody id="stockWatch"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-head">
+          <h2>Automated Alerts</h2>
+          <p>Created by SQLite triggers when stock or expiry rules are breached.</p>
+        </div>
+        <div id="alertsList" class="alerts-list"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head table-header">
+        <div>
+          <h2>Database Tables</h2>
+          <p>Core tables from the PPT schema plus stock movement and trigger alert tables.</p>
+        </div>
+        <select id="tableSelect" aria-label="Choose table">
+          <option value="inventory">Inventory</option>
+          <option value="products">Products</option>
+          <option value="warehouses">Warehouses</option>
+          <option value="suppliers">Suppliers</option>
+          <option value="orders">Orders</option>
+          <option value="movements">Stock Movements</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table id="dataTable"></table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

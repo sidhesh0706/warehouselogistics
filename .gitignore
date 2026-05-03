@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+warehouse.db
+warehouse.db-journal
+warehouse_app.db
+warehouse_app.db-journal
+pptx_inspection/
+extract_pptx.py
+write_test.tmp
