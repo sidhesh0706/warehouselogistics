@@ -1,6 +1,6 @@
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 import json
 import mimetypes
 import os
@@ -323,6 +323,50 @@ def transfer_stock(payload):
         return {"message": "Transfer completed across warehouse locations.", "dashboard": dashboard(conn)}
 
 
+def remove_order(order_id):
+    with connect() as conn:
+        order = conn.execute(
+            """
+            SELECT o.order_id, o.product_id, o.warehouse_id, o.customer_name,
+                   o.quantity_ordered, o.order_status, p.product_name
+            FROM orders o
+            JOIN products p ON p.product_id = o.product_id
+            WHERE o.order_id = ?
+            """,
+            (order_id,),
+        ).fetchone()
+        if not order:
+            raise ValueError("Order not found.")
+
+        upsert_stock(
+            conn,
+            order["product_id"],
+            order["warehouse_id"],
+            order["quantity_ordered"],
+            "RETURNS",
+        )
+        conn.execute(
+            """
+            INSERT INTO stock_movements (
+                product_id, source_warehouse_id, destination_warehouse_id,
+                movement_type, quantity, reference_note
+            )
+            VALUES (?, NULL, ?, 'ADJUSTMENT', ?, ?)
+            """,
+            (
+                order["product_id"],
+                order["warehouse_id"],
+                order["quantity_ordered"],
+                f"Removed order #{order_id}; stock restored from {order['customer_name']}",
+            ),
+        )
+        conn.execute("DELETE FROM orders WHERE order_id = ?", (order_id,))
+        return {
+            "message": f"Order #{order_id} removed and stock restored.",
+            "dashboard": dashboard(conn),
+        }
+
+
 class Handler(SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):
         print("%s - - %s" % (self.client_address[0], fmt % args))
@@ -396,6 +440,19 @@ class Handler(SimpleHTTPRequestHandler):
         except json.JSONDecodeError:
             self.send_json({"error": "Invalid JSON body."}, 400)
 
+    def do_DELETE(self):
+        parsed = urlparse(self.path)
+        try:
+            if parsed.path.startswith("/api/order/"):
+                order_id = int(parsed.path.rsplit("/", 1)[-1])
+                self.send_json(remove_order(order_id))
+            else:
+                self.send_json({"error": "Unknown endpoint."}, 404)
+        except ValueError as exc:
+            self.send_json({"error": str(exc)}, 400)
+        except sqlite3.IntegrityError as exc:
+            self.send_json({"error": f"Database constraint failed: {exc}"}, 400)
+
     def serve_file(self, path):
         path = path.resolve()
         if ROOT not in path.parents and path != ROOT:
@@ -417,7 +474,7 @@ def main():
     init_db()
     port = int(os.environ.get("PORT", "8000"))
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    print(f"Smart Warehouse DBMS running at http://127.0.0.1:{port}")
+    print(f"Smart Warehouse Logistics running at http://127.0.0.1:{port}")
     server.serve_forever()
 
 

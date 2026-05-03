@@ -118,14 +118,21 @@ async function loadTable(name = state.currentTable) {
     return;
   }
   const headers = Object.keys(rows[0]);
+  const actionHeader = name === "orders" ? "<th>Action</th>" : "";
   table.innerHTML = `
-    <thead><tr>${headers.map((header) => `<th>${header.replaceAll("_", " ")}</th>`).join("")}</tr></thead>
+    <thead><tr>${headers.map((header) => `<th>${header.replaceAll("_", " ")}</th>`).join("")}${actionHeader}</tr></thead>
     <tbody>
       ${rows.map((row) => `
-        <tr>${headers.map((header) => `<td>${row[header] ?? ""}</td>`).join("")}</tr>
+        <tr>
+          ${headers.map((header) => `<td>${row[header] ?? ""}</td>`).join("")}
+          ${name === "orders" ? `<td><button class="link-button" data-remove-order="${row.order_id}">Remove</button></td>` : ""}
+        </tr>
       `).join("")}
     </tbody>
   `;
+  table.querySelectorAll("[data-remove-order]").forEach((button) => {
+    button.addEventListener("click", () => removeOrder(button.dataset.removeOrder));
+  });
 }
 
 function formPayload(form) {
@@ -149,6 +156,22 @@ async function submitMovement(event, endpoint) {
     setMessage(data.message);
     await loadDashboard();
     await loadTable();
+  } catch (error) {
+    setMessage(error.message, true);
+  }
+}
+
+async function removeOrder(orderId) {
+  const confirmed = window.confirm(`Remove order #${orderId} and restore the shipped stock?`);
+  if (!confirmed) {
+    return;
+  }
+  setMessage(`Removing order #${orderId}...`);
+  try {
+    const data = await api(`/api/order/${orderId}`, { method: "DELETE" });
+    setMessage(data.message);
+    await loadDashboard();
+    await loadTable("orders");
   } catch (error) {
     setMessage(error.message, true);
   }
