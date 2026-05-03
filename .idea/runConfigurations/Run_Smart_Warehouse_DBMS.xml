@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run Smart Warehouse DBMS" type="PythonConfigurationType" factoryName="Python">
-    <module name="New project 3" />
+    <module name="warehouselogistics" />
     <option name="INTERPRETER_OPTIONS" value="-B" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
