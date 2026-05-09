@@ -1,15 +1,17 @@
 :root {
   color-scheme: light;
   --ink: #17252a;
-  --muted: #5f6f74;
-  --line: #dbe6e3;
+  --muted: #627277;
+  --line: #d9e5e1;
   --surface: #ffffff;
-  --wash: #eef5f2;
+  --wash: #f2f6f4;
   --accent: #0b6b68;
-  --accent-strong: #16404d;
+  --accent-strong: #153f4a;
+  --blue: #315f9d;
   --warn: #b26b00;
   --danger: #b42318;
   --ok: #237a4b;
+  --shadow: 0 16px 34px rgba(23, 37, 42, 0.08);
 }
 
 * {
@@ -18,27 +20,36 @@
 
 body {
   margin: 0;
-  background: #f7faf8;
+  background:
+    linear-gradient(180deg, #eef5f2 0, #f8fbfa 330px),
+    #f8fbfa;
   color: var(--ink);
   font-family: "Segoe UI", Arial, sans-serif;
 }
 
 .topbar {
-  min-height: 120px;
-  padding: 28px clamp(18px, 4vw, 56px);
-  background: linear-gradient(90deg, #16404d 0%, #0b6b68 72%, #337c41 100%);
+  min-height: 210px;
+  padding: 32px clamp(18px, 4vw, 56px);
+  background:
+    linear-gradient(135deg, rgba(21, 63, 74, 0.96), rgba(11, 107, 104, 0.93)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px 64px);
   color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 28px;
+}
+
+.hero-copy {
+  max-width: 800px;
 }
 
 .eyebrow {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   text-transform: uppercase;
   letter-spacing: 0;
   font-size: 13px;
+  font-weight: 700;
   opacity: 0.82;
 }
 
@@ -49,24 +60,52 @@ p {
 }
 
 h1 {
-  font-size: clamp(28px, 4vw, 46px);
-  font-weight: 750;
+  font-size: clamp(30px, 4vw, 50px);
+  font-weight: 760;
+  line-height: 1.05;
 }
 
 h2 {
   font-size: 20px;
 }
 
+.hero-subtitle {
+  max-width: 720px;
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.hero-actions {
+  width: min(320px, 100%);
+  display: grid;
+  gap: 12px;
+}
+
 main {
-  width: min(1180px, calc(100% - 32px));
-  margin: 22px auto 42px;
+  width: min(1200px, calc(100% - 32px));
+  margin: -38px auto 42px;
+}
+
+.status,
+.demo-actions {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .status {
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  padding: 10px 14px;
+  padding: 11px 14px;
   font-size: 14px;
-  white-space: nowrap;
+  font-weight: 700;
+}
+
+.demo-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 10px;
 }
 
 .metrics {
@@ -76,17 +115,45 @@ main {
 }
 
 .metrics article,
-.panel {
+.panel,
+.insight-strip {
   background: var(--surface);
   border: 1px solid var(--line);
-  box-shadow: 0 14px 30px rgba(17, 37, 42, 0.06);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
 }
 
 .metrics article {
-  min-height: 98px;
+  min-height: 108px;
   padding: 18px;
   display: grid;
   align-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.metrics article::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--accent);
+}
+
+.metrics article:nth-child(2)::before {
+  background: var(--blue);
+}
+
+.metrics article:nth-child(3)::before {
+  background: var(--ok);
+}
+
+.metrics article.warn::before {
+  background: var(--warn);
+}
+
+.metrics article.danger::before {
+  background: var(--danger);
 }
 
 .metrics span {
@@ -105,6 +172,31 @@ main {
 
 .metrics .danger strong {
   color: var(--danger);
+}
+
+.insight-strip {
+  margin-top: 14px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.insight-strip div {
+  border-left: 3px solid var(--line);
+  padding-left: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.insight-strip strong {
+  font-size: 14px;
+}
+
+.insight-strip span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .workspace,
@@ -178,7 +270,7 @@ select,
 button {
   min-height: 40px;
   border: 1px solid var(--line);
-  border-radius: 0;
+  border-radius: 6px;
   font: inherit;
 }
 
@@ -190,11 +282,20 @@ select {
   color: var(--ink);
 }
 
+input:focus,
+select:focus,
+button:focus-visible {
+  outline: 3px solid rgba(11, 107, 104, 0.16);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
 .wide {
   grid-column: span 2;
 }
 
-button[type="submit"] {
+button[type="submit"],
+.utility-button {
   align-self: end;
   background: var(--accent-strong);
   color: white;
@@ -202,6 +303,25 @@ button[type="submit"] {
   padding: 0 16px;
   cursor: pointer;
   font-weight: 700;
+}
+
+button[type="submit"]:hover,
+.utility-button:hover {
+  filter: brightness(1.08);
+}
+
+.utility-button {
+  width: 100%;
+  min-height: 38px;
+  background: #ffffff;
+  color: var(--accent-strong);
+  border-color: rgba(255, 255, 255, 0.65);
+}
+
+.danger-button {
+  background: #fff3f1;
+  color: var(--danger);
+  border-color: #ffd2cc;
 }
 
 .link-button {
@@ -229,6 +349,11 @@ button[type="submit"] {
   color: var(--danger);
 }
 
+.empty-state {
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .utilization-list,
 .alerts-list {
   display: grid;
@@ -250,7 +375,8 @@ button[type="submit"] {
 }
 
 .util-meta span,
-.alert-row span {
+.alert-row span,
+td span {
   color: var(--muted);
 }
 
@@ -258,11 +384,13 @@ button[type="submit"] {
   height: 10px;
   background: var(--wash);
   border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
 }
 
 .bar-fill {
   height: 100%;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--accent), var(--ok));
 }
 
 .table-wrap {
@@ -292,12 +420,17 @@ th {
   background: #f3f7f5;
 }
 
+tbody tr:hover {
+  background: #fbfdfc;
+}
+
 .badge {
   display: inline-block;
   min-width: 68px;
   text-align: center;
   padding: 4px 8px;
   border: 1px solid var(--line);
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
 }
@@ -305,12 +438,14 @@ th {
 .badge.ok {
   color: var(--ok);
   border-color: rgba(35, 122, 75, 0.35);
+  background: rgba(35, 122, 75, 0.08);
 }
 
 .badge.low,
 .badge.expiry {
   color: var(--danger);
   border-color: rgba(180, 35, 24, 0.35);
+  background: rgba(180, 35, 24, 0.08);
 }
 
 .alert-row {
@@ -333,14 +468,19 @@ th {
   max-width: 220px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 980px) {
   .topbar,
   .table-header {
     align-items: stretch;
     flex-direction: column;
   }
 
+  main {
+    margin-top: -24px;
+  }
+
   .metrics,
+  .insight-strip,
   .workspace,
   .grid-two {
     grid-template-columns: 1fr;

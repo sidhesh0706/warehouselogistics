@@ -62,9 +62,24 @@ TABLE_QUERIES = {
     """,
 }
 
+OPERATIONAL_TABLES = ("orders", "stock_movements", "expiry_alerts", "reorder_alerts", "inventory")
+MASTER_TABLES = ("products", "warehouses", "suppliers")
+
+
+class ManagedConnection(sqlite3.Connection):
+    def __exit__(self, exc_type, exc_value, traceback):
+        try:
+            if exc_type is None:
+                self.commit()
+            else:
+                self.rollback()
+        finally:
+            self.close()
+        return False
+
 
 def connect():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, factory=ManagedConnection)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode = MEMORY")
     conn.execute("PRAGMA temp_store = MEMORY")
@@ -78,6 +93,39 @@ def init_db():
         supplier_count = conn.execute("SELECT COUNT(*) FROM suppliers").fetchone()[0]
         if supplier_count == 0:
             conn.executescript((ROOT / "seed.sql").read_text(encoding="utf-8"))
+
+
+def reset_sequences(conn, tables):
+    placeholders = ",".join("?" for _ in tables)
+    conn.execute(f"DELETE FROM sqlite_sequence WHERE name IN ({placeholders})", tables)
+
+
+def clear_operational_data(conn):
+    for table in OPERATIONAL_TABLES:
+        conn.execute(f"DELETE FROM {table}")
+    reset_sequences(conn, OPERATIONAL_TABLES)
+
+
+def clear_demo_data():
+    with connect() as conn:
+        clear_operational_data(conn)
+        return {
+            "message": "Demo inventory, orders, movements, and alerts cleared. Products and warehouses are ready for fresh transactions.",
+            "dashboard": dashboard(conn),
+        }
+
+
+def restore_demo_data():
+    with connect() as conn:
+        clear_operational_data(conn)
+        for table in MASTER_TABLES:
+            conn.execute(f"DELETE FROM {table}")
+        reset_sequences(conn, OPERATIONAL_TABLES + MASTER_TABLES)
+        conn.executescript((ROOT / "seed.sql").read_text(encoding="utf-8"))
+        return {
+            "message": "Demo dataset restored with sample suppliers, products, warehouses, and stock.",
+            "dashboard": dashboard(conn),
+        }
 
 
 def rows(conn, sql, params=()):
@@ -431,6 +479,10 @@ class Handler(SimpleHTTPRequestHandler):
                 self.send_json(ship_order(payload))
             elif parsed.path == "/api/transfer":
                 self.send_json(transfer_stock(payload))
+            elif parsed.path == "/api/demo/clear":
+                self.send_json(clear_demo_data())
+            elif parsed.path == "/api/demo/restore":
+                self.send_json(restore_demo_data())
             else:
                 self.send_json({"error": "Unknown endpoint."}, 404)
         except ValueError as exc:

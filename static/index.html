@@ -8,11 +8,18 @@
 </head>
 <body>
   <header class="topbar">
-    <div>
-      <p class="eyebrow">DBMS Project</p>
+    <div class="hero-copy">
+      <p class="eyebrow">Final Year DBMS Project</p>
       <h1>Smart Warehouse & Inventory Logistics</h1>
+      <p class="hero-subtitle">Inventory visibility, stock movement, reorder automation, expiry tracking, and fulfilment control in one database-backed dashboard.</p>
     </div>
-    <div class="status" id="refreshStatus">Live stock monitor</div>
+    <div class="hero-actions">
+      <div class="status" id="refreshStatus">Live stock monitor</div>
+      <div class="demo-actions" aria-label="Demo data controls">
+        <button id="clearDemoData" class="utility-button danger-button" type="button">Clear Demo Data</button>
+        <button id="restoreDemoData" class="utility-button" type="button">Restore Demo Data</button>
+      </div>
+    </div>
   </header>
 
   <main>
@@ -37,6 +44,21 @@
         <span>Expiry Alerts</span>
         <strong id="metricExpiry">0</strong>
       </article>
+    </section>
+
+    <section class="insight-strip" aria-label="System capabilities">
+      <div>
+        <strong>Live Transactions</strong>
+        <span>Receive, ship, transfer, and reverse orders with stock adjustments.</span>
+      </div>
+      <div>
+        <strong>SQLite Automation</strong>
+        <span>Triggers create low-stock and expiry alerts without manual checks.</span>
+      </div>
+      <div>
+        <strong>Review Ready</strong>
+        <span>Demo data can be cleared or restored instantly for presentation flow.</span>
+      </div>
     </section>
 
     <section class="workspace">

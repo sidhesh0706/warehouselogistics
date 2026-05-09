@@ -42,6 +42,10 @@ function populateOptions() {
 }
 
 function renderUtilization(rows) {
+  if (!rows.length) {
+    $("#utilizationList").innerHTML = `<p class="empty-state">No warehouse records available.</p>`;
+    return;
+  }
   $("#utilizationList").innerHTML = rows.map((row) => {
     const pct = Math.min(Number(row.utilization || 0), 100);
     return `
@@ -64,6 +68,10 @@ function stateBadge(value) {
 }
 
 function renderStockWatch(rows) {
+  if (!rows.length) {
+    $("#stockWatch").innerHTML = `<tr><td colspan="5" class="empty-state">No stock records yet. Receive inventory to start tracking bins and alerts.</td></tr>`;
+    return;
+  }
   $("#stockWatch").innerHTML = rows.map((row) => `
     <tr>
       <td><strong>${row.product_name}</strong><br><span>${row.sku}</span></td>
@@ -77,7 +85,7 @@ function renderStockWatch(rows) {
 
 function renderAlerts(rows) {
   if (!rows.length) {
-    $("#alertsList").innerHTML = `<p class="form-message">No open trigger alerts right now.</p>`;
+    $("#alertsList").innerHTML = `<p class="empty-state">No open trigger alerts right now.</p>`;
     return;
   }
   $("#alertsList").innerHTML = rows.map((row) => {
@@ -114,7 +122,7 @@ async function loadTable(name = state.currentTable) {
   const { rows } = await api(`/api/table/${name}`);
   const table = $("#dataTable");
   if (!rows.length) {
-    table.innerHTML = "<tbody><tr><td>No rows yet.</td></tr></tbody>";
+    table.innerHTML = `<tbody><tr><td class="empty-state">No rows yet. Use the transaction panel to create fresh records.</td></tr></tbody>`;
     return;
   }
   const headers = Object.keys(rows[0]);
@@ -177,6 +185,30 @@ async function removeOrder(orderId) {
   }
 }
 
+async function loadOptions() {
+  const options = await api("/api/options");
+  state.products = options.products;
+  state.warehouses = options.warehouses;
+  populateOptions();
+}
+
+async function runDemoAction(endpoint, confirmText, loadingText) {
+  const confirmed = window.confirm(confirmText);
+  if (!confirmed) {
+    return;
+  }
+  setMessage(loadingText);
+  try {
+    const data = await api(endpoint, { method: "POST", body: "{}" });
+    setMessage(data.message);
+    await loadOptions();
+    await loadDashboard();
+    await loadTable();
+  } catch (error) {
+    setMessage(error.message, true);
+  }
+}
+
 function wireTabs() {
   document.querySelectorAll(".tab").forEach((button) => {
     button.addEventListener("click", () => {
@@ -190,14 +222,21 @@ function wireTabs() {
 }
 
 async function boot() {
-  const options = await api("/api/options");
-  state.products = options.products;
-  state.warehouses = options.warehouses;
-  populateOptions();
+  await loadOptions();
   wireTabs();
   $("#receiveForm").addEventListener("submit", (event) => submitMovement(event, "/api/receive"));
   $("#shipForm").addEventListener("submit", (event) => submitMovement(event, "/api/ship"));
   $("#transferForm").addEventListener("submit", (event) => submitMovement(event, "/api/transfer"));
+  $("#clearDemoData").addEventListener("click", () => runDemoAction(
+    "/api/demo/clear",
+    "Clear demo inventory, orders, stock movements, and alerts? Products and warehouses will remain.",
+    "Clearing demo transaction data..."
+  ));
+  $("#restoreDemoData").addEventListener("click", () => runDemoAction(
+    "/api/demo/restore",
+    "Restore the original demo dataset? This replaces current suppliers, products, warehouses, stock, orders, movements, and alerts.",
+    "Restoring demo dataset..."
+  ));
   $("#tableSelect").addEventListener("change", (event) => loadTable(event.target.value));
   await loadDashboard();
   await loadTable();
