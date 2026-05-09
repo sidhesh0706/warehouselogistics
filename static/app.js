@@ -10,6 +10,26 @@ function $(selector) {
   return document.querySelector(selector);
 }
 
+function setTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem("warehouse-theme", theme);
+  const toggle = $("#themeToggle");
+  if (toggle) {
+    toggle.textContent = theme === "dark" ? "Light" : "Dark";
+    toggle.setAttribute("aria-label", `Switch to ${theme === "dark" ? "light" : "dark"} mode`);
+  }
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem("warehouse-theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  setTheme(savedTheme || (prefersDark ? "dark" : "light"));
+  $("#themeToggle").addEventListener("click", () => {
+    const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+  });
+}
+
 async function api(path, options = {}) {
   const response = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -222,6 +242,7 @@ function wireTabs() {
 }
 
 async function boot() {
+  initTheme();
   await loadOptions();
   wireTabs();
   $("#receiveForm").addEventListener("submit", (event) => submitMovement(event, "/api/receive"));
