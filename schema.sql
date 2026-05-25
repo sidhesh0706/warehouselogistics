@@ -133,6 +133,29 @@ ON inventory (product_id, warehouse_id);
 CREATE INDEX IF NOT EXISTS idx_movements_product_date
 ON stock_movements (product_id, movement_date);
 
+CREATE VIEW IF NOT EXISTS inventory_overview AS
+SELECT
+    i.stock_id,
+    p.product_name,
+    p.sku,
+    p.category,
+    s.supplier_name,
+    w.warehouse_name,
+    w.city,
+    i.quantity,
+    p.reorder_level,
+    i.bin_location,
+    i.expiry_date,
+    CASE
+        WHEN i.quantity <= p.reorder_level THEN 'LOW'
+        WHEN i.expiry_date IS NOT NULL AND date(i.expiry_date) <= date('now', '+30 day') THEN 'EXPIRING'
+        ELSE 'OK'
+    END AS stock_state
+FROM inventory i
+JOIN products p ON p.product_id = i.product_id
+JOIN suppliers s ON s.supplier_id = p.supplier_id
+JOIN warehouses w ON w.warehouse_id = i.warehouse_id;
+
 CREATE TRIGGER IF NOT EXISTS trg_inventory_low_stock_insert
 AFTER INSERT ON inventory
 BEGIN

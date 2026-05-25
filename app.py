@@ -60,6 +60,13 @@ TABLE_QUERIES = {
         ORDER BY m.movement_date DESC, m.movement_id DESC
         LIMIT 50
     """,
+    "inventory_view": """
+        SELECT stock_id, product_name, sku, category, supplier_name,
+               warehouse_name, city, quantity, reorder_level, bin_location,
+               expiry_date, stock_state
+        FROM inventory_overview
+        ORDER BY warehouse_name, product_name, bin_location
+    """,
 }
 
 OPERATIONAL_TABLES = ("orders", "stock_movements", "expiry_alerts", "reorder_alerts", "inventory")
