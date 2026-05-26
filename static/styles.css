@@ -573,7 +573,7 @@ button[type="submit"] {
   border-radius: 14px;
   background: var(--glass-soft);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 5px;
   box-shadow: var(--inset);
 }
@@ -601,6 +601,10 @@ button[type="submit"] {
 
 .movement-form.active {
   display: grid;
+}
+
+.product-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 label {

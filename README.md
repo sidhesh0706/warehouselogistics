@@ -8,6 +8,7 @@ The project is designed as a final-year DBMS submission and portfolio project, w
 
 - Multi-warehouse inventory monitoring with bin-level stock records.
 - Supplier, product, warehouse, inventory, order, and movement tables.
+- Product catalog creation from the frontend with supplier, SKU, category, price, reorder, and expiry settings.
 - Receiving, shipping, and inter-warehouse transfer workflows.
 - Order removal flow that restores shipped stock and records an adjustment movement.
 - Demo controls to clear operational sample data or restore the complete seeded dataset.
@@ -85,6 +86,7 @@ Then open `http://127.0.0.1:8000`.
 ## Database Logic
 
 - Shipping an order deducts stock using earliest-expiry inventory first.
+- Adding a product inserts a new row into `products` and immediately refreshes frontend product selectors and table data.
 - Removing an order restores stock to the source warehouse under a `RETURNS` bin.
 - Clearing demo data resets operational tables while preserving the product and warehouse catalogue.
 - Restoring demo data rebuilds the sample dataset from `seed.sql`.

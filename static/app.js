@@ -1,6 +1,7 @@
 const state = {
   products: [],
   warehouses: [],
+  suppliers: [],
   currentTable: "inventory",
 };
 
@@ -58,6 +59,9 @@ function populateOptions() {
   });
   document.querySelectorAll('select[name="warehouse_id"], select[name="source_warehouse_id"], select[name="destination_warehouse_id"]').forEach((select) => {
     fillSelect(select, state.warehouses, "warehouse_id", (row) => `${row.warehouse_name} - ${row.city}`);
+  });
+  document.querySelectorAll('select[name="supplier_id"]').forEach((select) => {
+    fillSelect(select, state.suppliers, "supplier_id", (row) => row.supplier_name);
   });
 }
 
@@ -205,10 +209,30 @@ async function removeOrder(orderId) {
   }
 }
 
+async function submitProduct(event) {
+  event.preventDefault();
+  setMessage("Adding product to catalog...");
+  try {
+    const data = await api("/api/product", {
+      method: "POST",
+      body: JSON.stringify(formPayload(event.currentTarget)),
+    });
+    setMessage(data.message);
+    event.currentTarget.reset();
+    await loadOptions();
+    await loadDashboard();
+    $("#tableSelect").value = "products";
+    await loadTable("products");
+  } catch (error) {
+    setMessage(error.message, true);
+  }
+}
+
 async function loadOptions() {
   const options = await api("/api/options");
   state.products = options.products;
   state.warehouses = options.warehouses;
+  state.suppliers = options.suppliers;
   populateOptions();
 }
 
@@ -248,6 +272,7 @@ async function boot() {
   $("#receiveForm").addEventListener("submit", (event) => submitMovement(event, "/api/receive"));
   $("#shipForm").addEventListener("submit", (event) => submitMovement(event, "/api/ship"));
   $("#transferForm").addEventListener("submit", (event) => submitMovement(event, "/api/transfer"));
+  $("#productForm").addEventListener("submit", submitProduct);
   $("#clearDemoData").addEventListener("click", () => runDemoAction(
     "/api/demo/clear",
     "Clear demo inventory, orders, stock movements, and alerts? Products and warehouses will remain.",

@@ -286,6 +286,66 @@ def require_int(payload, key, minimum=1):
     return value
 
 
+def require_float(payload, key, minimum=0):
+    try:
+        value = float(payload.get(key))
+    except (TypeError, ValueError):
+        raise ValueError(f"{key} must be a number.")
+    if value < minimum:
+        raise ValueError(f"{key} must be at least {minimum}.")
+    return value
+
+
+def require_text(payload, key):
+    value = (payload.get(key) or "").strip()
+    if not value:
+        raise ValueError(f"{key} is required.")
+    return value
+
+
+def add_product(payload):
+    supplier_id = require_int(payload, "supplier_id")
+    product_name = require_text(payload, "product_name")
+    sku = require_text(payload, "sku").upper()
+    category = require_text(payload, "category")
+    unit_price = require_float(payload, "unit_price")
+    reorder_level = require_int(payload, "reorder_level", minimum=0)
+    expiry_required = require_int(payload, "expiry_required", minimum=0)
+    if expiry_required not in (0, 1):
+        raise ValueError("expiry_required must be 0 or 1.")
+
+    with connect() as conn:
+        supplier = conn.execute(
+            "SELECT supplier_id FROM suppliers WHERE supplier_id = ?",
+            (supplier_id,),
+        ).fetchone()
+        if not supplier:
+            raise ValueError("Supplier not found.")
+        cursor = conn.execute(
+            """
+            INSERT INTO products (
+                supplier_id, product_name, sku, category,
+                unit_price, reorder_level, expiry_required
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                supplier_id,
+                product_name,
+                sku,
+                category,
+                unit_price,
+                reorder_level,
+                expiry_required,
+            ),
+        )
+        return {
+            "message": f"{product_name} added to the product catalog.",
+            "product_id": cursor.lastrowid,
+            "dashboard": dashboard(conn),
+        }
+
+
 def receive_stock(payload):
     product_id = require_int(payload, "product_id")
     warehouse_id = require_int(payload, "warehouse_id")
@@ -468,6 +528,10 @@ class Handler(SimpleHTTPRequestHandler):
                             conn,
                             "SELECT warehouse_id, warehouse_name, city FROM warehouses ORDER BY warehouse_name",
                         ),
+                        "suppliers": rows(
+                            conn,
+                            "SELECT supplier_id, supplier_name FROM suppliers ORDER BY supplier_name",
+                        ),
                     }
                 )
             return
@@ -482,6 +546,8 @@ class Handler(SimpleHTTPRequestHandler):
             payload = self.read_json()
             if parsed.path == "/api/receive":
                 self.send_json(receive_stock(payload))
+            elif parsed.path == "/api/product":
+                self.send_json(add_product(payload))
             elif parsed.path == "/api/ship":
                 self.send_json(ship_order(payload))
             elif parsed.path == "/api/transfer":

@@ -129,6 +129,7 @@
               <button class="tab active" data-tab="receive">Receive</button>
               <button class="tab" data-tab="ship">Ship</button>
               <button class="tab" data-tab="transfer">Transfer</button>
+              <button class="tab" data-tab="product">Add Product</button>
             </div>
 
             <form id="receiveForm" class="movement-form active">
@@ -157,6 +158,20 @@
               <label>Destination Bin<input name="bin_location" placeholder="M1-R3-B04" required></label>
               <label class="wide">Reference<input name="reference_note" placeholder="Inter-warehouse transfer"></label>
               <button type="submit">Transfer Stock</button>
+            </form>
+
+            <form id="productForm" class="movement-form product-form">
+              <label>Supplier<select name="supplier_id" required></select></label>
+              <label>Product Name<input name="product_name" placeholder="Custom Product Case" required></label>
+              <label>SKU<input name="sku" placeholder="CUSTOM-SKU-001" required></label>
+              <label>Category<input name="category" placeholder="Electronics / Food / Medicine" required></label>
+              <label>Unit Price<input name="unit_price" type="number" min="0" step="0.01" value="100" required></label>
+              <label>Reorder Level<input name="reorder_level" type="number" min="0" value="25" required></label>
+              <label>Expiry Tracking<select name="expiry_required" required>
+                <option value="0">Not Required</option>
+                <option value="1">Required</option>
+              </select></label>
+              <button type="submit">Add Product</button>
             </form>
             <p id="formMessage" class="form-message" aria-live="polite"></p>
           </div>
