@@ -60,3 +60,12 @@ INSERT INTO stock_movements (
 (5, 3, NULL, 'SHIPPING', 6, 'Order #3 for FreshMart Kochi'),
 (7, 4, NULL, 'SHIPPING', 3, 'Order #4 for North Retail Systems'),
 (8, 5, NULL, 'SHIPPING', 10, 'Order #5 for CleanPlus Stores');
+
+INSERT INTO action_logs (
+    related_product_id, action_type, entity_name, entity_id, summary, details
+) VALUES
+(1, 'INSERT', 'inventory', 1, 'Seeded receiving stock for Paracetamol 500mg Carton.', '{"quantity": 50, "warehouse_id": 1}'),
+(3, 'INSERT', 'orders', 2, 'Seeded shipment for Corrugated Shipping Box.', '{"quantity": 40, "warehouse_id": 2}'),
+(5, 'UPDATE', 'inventory', 5, 'Seeded cold-chain stock movement for Insulated Dairy Crate.', '{"quantity": 30, "warehouse_id": 3}'),
+(7, 'INSERT', 'products', 7, 'Seeded equipment SKU Barcode Scanner Handheld.', '{"category": "Equipment", "reorder_level": 50}'),
+(8, 'INSERT', 'orders', 5, 'Seeded shipment for Sanitizer Refill Drum.', '{"quantity": 10, "warehouse_id": 5}');

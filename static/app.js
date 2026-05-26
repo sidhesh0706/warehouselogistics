@@ -2,6 +2,8 @@ const state = {
   products: [],
   warehouses: [],
   suppliers: [],
+  productSearchResults: [],
+  selectedProductId: null,
   currentTable: "inventory",
 };
 
@@ -9,6 +11,16 @@ const formatter = new Intl.NumberFormat("en-IN");
 
 function $(selector) {
   return document.querySelector(selector);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  }[char]));
 }
 
 function setTheme(theme) {
@@ -193,6 +205,10 @@ function setMessage(text, isError = false) {
   message.classList.toggle("error", isError);
 }
 
+function setMaintenanceDisabled(disabled) {
+  $("#deleteProductButton").disabled = disabled;
+}
+
 async function submitMovement(event, endpoint) {
   event.preventDefault();
   setMessage("Saving transaction...");
@@ -245,6 +261,121 @@ async function submitProduct(event) {
   }
 }
 
+function renderProductSearchResults(rows) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const container = $("#productSearchResults");
+  if (!safeRows.length) {
+    container.innerHTML = `<p class="empty-state">No products matched. Change the name or quantity filter and try again.</p>`;
+    return;
+  }
+  container.innerHTML = safeRows.map((row) => `
+    <button class="product-result" type="button" data-product-id="${row.product_id}">
+      <span>
+        <strong>${escapeHtml(row.product_name)}</strong>
+        <small>${escapeHtml(row.sku)} / ${escapeHtml(row.category)} / ${escapeHtml(row.supplier_name)}</small>
+      </span>
+      <span>${formatter.format(row.total_quantity)} units</span>
+    </button>
+  `).join("");
+  container.querySelectorAll("[data-product-id]").forEach((button) => {
+    button.addEventListener("click", () => selectProductForMaintenance(button.dataset.productId));
+  });
+}
+
+async function searchProducts() {
+  const params = new URLSearchParams();
+  params.set("q", $("#productSearchInput").value.trim());
+  const minQuantity = $("#minQuantityFilter").value.trim();
+  const maxQuantity = $("#maxQuantityFilter").value.trim();
+  if (minQuantity) {
+    params.set("min_quantity", minQuantity);
+  }
+  if (maxQuantity) {
+    params.set("max_quantity", maxQuantity);
+  }
+
+  setMessage("Searching product catalog...");
+  try {
+    const data = await api(`/api/products/search?${params.toString()}`);
+    state.productSearchResults = Array.isArray(data.rows) ? data.rows : [];
+    renderProductSearchResults(state.productSearchResults);
+    setMessage(`${state.productSearchResults.length} product record(s) found.`);
+  } catch (error) {
+    setMessage(error.message, true);
+  }
+}
+
+function selectProductForMaintenance(productId) {
+  const product = state.productSearchResults.find((row) => String(row.product_id) === String(productId));
+  if (!product) {
+    setMessage("Select a product from the search results first.", true);
+    return;
+  }
+  state.selectedProductId = product.product_id;
+  $("#maintenanceProductId").value = product.product_id;
+  $("#maintenanceSupplierName").value = product.supplier_name;
+  $("#maintenanceProductName").value = product.product_name;
+  $("#maintenanceSku").value = product.sku;
+  $("#maintenanceCategory").value = product.category;
+  $("#maintenanceUnitPrice").value = product.unit_price;
+  $("#maintenanceReorderLevel").value = product.reorder_level;
+  $("#maintenanceExpiryRequired").value = String(product.expiry_required);
+  setMaintenanceDisabled(false);
+  setMessage(`${product.product_name} selected for update.`);
+}
+
+async function submitProductUpdate(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!$("#maintenanceProductId").value) {
+    setMessage("Search and select a product before updating.", true);
+    return;
+  }
+  setMessage("Updating product...");
+  try {
+    const data = await api("/api/product/update", {
+      method: "POST",
+      body: JSON.stringify(formPayload(form)),
+    });
+    setMessage(data.message);
+    await loadOptions();
+    await loadDashboard();
+    $("#tableSelect").value = "products";
+    await loadTable("products");
+    await searchProducts();
+  } catch (error) {
+    setMessage(error.message, true);
+  }
+}
+
+async function deleteSelectedProduct() {
+  const productId = $("#maintenanceProductId").value;
+  const productName = $("#maintenanceProductName").value || `product #${productId}`;
+  if (!productId) {
+    setMessage("Search and select a product before deleting.", true);
+    return;
+  }
+  const confirmed = window.confirm(`Delete ${productName}? Related stock, orders, alerts, and movement rows for this product will also be removed.`);
+  if (!confirmed) {
+    return;
+  }
+  setMessage(`Deleting ${productName}...`);
+  try {
+    const data = await api(`/api/product/${productId}`, { method: "DELETE" });
+    setMessage(data.message);
+    $("#maintenanceForm").reset();
+    state.selectedProductId = null;
+    setMaintenanceDisabled(true);
+    await loadOptions();
+    await loadDashboard();
+    $("#tableSelect").value = "products";
+    await loadTable("products");
+    await searchProducts();
+  } catch (error) {
+    setMessage(error.message, true);
+  }
+}
+
 async function loadOptions() {
   const options = await api("/api/options");
   state.products = Array.isArray(options.products) ? options.products : [];
@@ -290,6 +421,9 @@ async function boot() {
   $("#shipForm").addEventListener("submit", (event) => submitMovement(event, "/api/ship"));
   $("#transferForm").addEventListener("submit", (event) => submitMovement(event, "/api/transfer"));
   $("#productForm").addEventListener("submit", submitProduct);
+  $("#maintenanceForm").addEventListener("submit", submitProductUpdate);
+  $("#productSearchButton").addEventListener("click", searchProducts);
+  $("#deleteProductButton").addEventListener("click", deleteSelectedProduct);
   $("#clearDemoData").addEventListener("click", () => runDemoAction(
     "/api/demo/clear",
     "Clear demo inventory, orders, stock movements, and alerts? Products and warehouses will remain.",

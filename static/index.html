@@ -130,6 +130,7 @@
               <button class="tab" data-tab="ship">Ship</button>
               <button class="tab" data-tab="transfer">Transfer</button>
               <button class="tab" data-tab="product">Add Product</button>
+              <button class="tab" data-tab="maintenance">Find / Update</button>
             </div>
 
             <form id="receiveForm" class="movement-form active">
@@ -173,6 +174,33 @@
                 <option value="1">Required</option>
               </select></label>
               <button type="submit">Add Product</button>
+            </form>
+
+            <form id="maintenanceForm" class="movement-form maintenance-form">
+              <div class="search-tools wide-full">
+                <label>Product Name / SKU / Supplier<input id="productSearchInput" placeholder="Search pizza, SKU, category, supplier"></label>
+                <label>Min Qty<input id="minQuantityFilter" type="number" min="0" placeholder="0"></label>
+                <label>Max Qty<input id="maxQuantityFilter" type="number" min="0" placeholder="Any"></label>
+                <button id="productSearchButton" class="utility-button" type="button">Search</button>
+              </div>
+              <div id="productSearchResults" class="product-results wide-full">
+                <p class="empty-state">Search by product name or quantity to select a product for update/delete.</p>
+              </div>
+              <input id="maintenanceProductId" name="product_id" type="hidden">
+              <label>Supplier Name<input id="maintenanceSupplierName" name="supplier_name" list="supplierOptions" placeholder="Supplier name" required></label>
+              <label>Product Name<input id="maintenanceProductName" name="product_name" placeholder="Product name" required></label>
+              <label>SKU<input id="maintenanceSku" name="sku" placeholder="SKU" required></label>
+              <label>Category<input id="maintenanceCategory" name="category" placeholder="Category" required></label>
+              <label>Unit Price<input id="maintenanceUnitPrice" name="unit_price" type="number" min="0" step="0.01" required></label>
+              <label>Reorder Level<input id="maintenanceReorderLevel" name="reorder_level" type="number" min="0" required></label>
+              <label>Expiry Tracking<select id="maintenanceExpiryRequired" name="expiry_required" required>
+                <option value="0">Not Required</option>
+                <option value="1">Required</option>
+              </select></label>
+              <div class="maintenance-actions">
+                <button type="submit">Update Product</button>
+                <button id="deleteProductButton" class="utility-button danger-button" type="button" disabled>Delete Product</button>
+              </div>
             </form>
             <p id="formMessage" class="form-message" aria-live="polite"></p>
           </div>
@@ -235,7 +263,9 @@
               <option value="orders">Orders</option>
               <option value="movements">Stock Movements</option>
               <option value="inventory_view">Inventory View</option>
+              <option value="action_logs">Action Logs</option>
             </select>
+            <a class="export-button" href="/api/action-log/export" download="warehouse_action_log.csv">Export Log</a>
           </div>
           <div class="table-wrap">
             <table id="dataTable"></table>

@@ -119,6 +119,19 @@ CREATE TABLE IF NOT EXISTS expiry_alerts (
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS action_logs (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    related_product_id INTEGER,
+    action_type TEXT NOT NULL,
+    entity_name TEXT NOT NULL,
+    entity_id INTEGER,
+    summary TEXT NOT NULL,
+    details TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (related_product_id) REFERENCES products (product_id)
+        ON UPDATE CASCADE ON DELETE SET NULL
+);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_open_reorder_alert
 ON reorder_alerts (product_id, warehouse_id)
 WHERE alert_status = 'OPEN';

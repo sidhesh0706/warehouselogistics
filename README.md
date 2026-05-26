@@ -9,8 +9,10 @@ The project is designed as a final-year DBMS submission and portfolio project, w
 - Multi-warehouse inventory monitoring with bin-level stock records.
 - Supplier, product, warehouse, inventory, order, and movement tables.
 - Product catalog creation from the frontend with custom supplier name, SKU, category, price, reorder, and expiry settings.
+- Product search, quantity filtering, update, and delete controls for catalogue maintenance.
 - Receiving, shipping, and inter-warehouse transfer workflows.
 - Order removal flow that restores shipped stock and records an adjustment movement.
+- Exportable action log for insert, update, delete, receiving, shipping, transfer, and demo reset activity.
 - Demo controls to clear operational sample data or restore the complete seeded dataset.
 - Review-ready seed data with at least 5 records in every core relation.
 - SQL view support through `inventory_overview`, exposed in the frontend table viewer.
@@ -72,6 +74,7 @@ Then open `http://127.0.0.1:8000`.
 - `stock_movements`: receiving, shipping, transfer, and adjustment history.
 - `reorder_alerts`: trigger-created low-stock alerts.
 - `expiry_alerts`: trigger-created expiry risk alerts.
+- `action_logs`: audit trail for frontend and backend data-changing actions, linked back to products when applicable.
 
 ## Review-2 Checklist
 
@@ -80,13 +83,15 @@ Then open `http://127.0.0.1:8000`.
 - Primary keys and foreign keys: each table has a primary key, and all operational tables are connected through product, supplier, warehouse, inventory, or order relationships.
 - Minimum 5 records: `seed.sql` loads at least 5 records for each core table, and trigger-created alert tables are populated from seeded low-stock and expiry data.
 - SQL functionality: `review_demo.sql` demonstrates `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `ALTER TABLE`, `VIEW`, and trigger behavior.
-- Frontend/backend sync: receive, ship, transfer, remove order, clear demo data, and restore demo data all update SQLite first and then reload frontend values from API `SELECT` queries.
+- Frontend/backend sync: receive, ship, transfer, add/update/delete product, remove order, clear demo data, and restore demo data all update SQLite first and then reload frontend values from API `SELECT` queries.
 - Platform rule: this is a browser-based web application, not an Android or iOS app.
 
 ## Database Logic
 
 - Shipping an order deducts stock using earliest-expiry inventory first.
 - Adding a product can reuse an existing supplier or automatically create a new supplier from the entered supplier name.
+- Product maintenance supports search by product name, SKU, category, supplier, and stock quantity range.
+- Update and delete actions are written to `action_logs` and can be exported as a CSV file from the dashboard.
 - Removing an order restores stock to the source warehouse under a `RETURNS` bin.
 - Clearing demo data resets operational tables while preserving the product and warehouse catalogue.
 - Restoring demo data rebuilds the sample dataset from `seed.sql`.
@@ -101,6 +106,7 @@ Then open `http://127.0.0.1:8000`.
 - `inventory.warehouse_id`, `orders.warehouse_id`, `stock_movements.source_warehouse_id`, `stock_movements.destination_warehouse_id`, `reorder_alerts.warehouse_id`, and `expiry_alerts.warehouse_id` reference `warehouses.warehouse_id`.
 - `expiry_alerts.stock_id` references `inventory.stock_id`.
 - `inventory_overview` joins suppliers, products, warehouses, and inventory for a review-friendly SQL view.
+- `action_logs.related_product_id` references `products.product_id` where a product is involved, while preserving history if that product is later deleted.
 
 ## Why This Project Matters
 
