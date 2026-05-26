@@ -76,6 +76,8 @@ Then open `http://127.0.0.1:8000`.
 - `expiry_alerts`: trigger-created expiry risk alerts.
 - `action_logs`: audit trail for frontend and backend data-changing actions, linked back to products when applicable.
 
+The complete ER diagram is available in [`docs/ER_DIAGRAM.md`](docs/ER_DIAGRAM.md).
+
 ## Review-2 Checklist
 
 - Minimum 5 entities: the project has suppliers, products, warehouses, inventory, orders, stock movements, reorder alerts, and expiry alerts.
