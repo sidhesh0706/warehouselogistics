@@ -48,7 +48,12 @@ function setMetric(id, value) {
 }
 
 function fillSelect(select, rows, idKey, labelFn) {
-  select.innerHTML = rows.map((row) => (
+  const safeRows = Array.isArray(rows) ? rows : [];
+  if (!safeRows.length) {
+    select.innerHTML = `<option value="">No options available</option>`;
+    return;
+  }
+  select.innerHTML = safeRows.map((row) => (
     `<option value="${row[idKey]}">${labelFn(row)}</option>`
   )).join("");
 }
@@ -66,11 +71,12 @@ function populateOptions() {
 }
 
 function renderUtilization(rows) {
-  if (!rows.length) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  if (!safeRows.length) {
     $("#utilizationList").innerHTML = `<p class="empty-state">No warehouse records available.</p>`;
     return;
   }
-  $("#utilizationList").innerHTML = rows.map((row) => {
+  $("#utilizationList").innerHTML = safeRows.map((row) => {
     const pct = Math.min(Number(row.utilization || 0), 100);
     return `
       <div class="util-row">
@@ -92,11 +98,12 @@ function stateBadge(value) {
 }
 
 function renderStockWatch(rows) {
-  if (!rows.length) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  if (!safeRows.length) {
     $("#stockWatch").innerHTML = `<tr><td colspan="5" class="empty-state">No stock records yet. Receive inventory to start tracking bins and alerts.</td></tr>`;
     return;
   }
-  $("#stockWatch").innerHTML = rows.map((row) => `
+  $("#stockWatch").innerHTML = safeRows.map((row) => `
     <tr>
       <td><strong>${row.product_name}</strong><br><span>${row.sku}</span></td>
       <td>${row.warehouse_name}</td>
@@ -108,11 +115,12 @@ function renderStockWatch(rows) {
 }
 
 function renderAlerts(rows) {
-  if (!rows.length) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  if (!safeRows.length) {
     $("#alertsList").innerHTML = `<p class="empty-state">No open trigger alerts right now.</p>`;
     return;
   }
-  $("#alertsList").innerHTML = rows.map((row) => {
+  $("#alertsList").innerHTML = safeRows.map((row) => {
     const detail = row.alert_type === "LOW_STOCK"
       ? `${formatter.format(row.value)} units; reorder at ${formatter.format(row.threshold)}`
       : `${formatter.format(row.value)} days to expiry`;
@@ -130,11 +138,12 @@ function renderAlerts(rows) {
 
 async function loadDashboard() {
   const data = await api("/api/dashboard");
-  setMetric("#metricProducts", data.metrics.products);
-  setMetric("#metricWarehouses", data.metrics.warehouses);
-  setMetric("#metricUnits", data.metrics.total_units);
-  setMetric("#metricLowStock", data.metrics.low_stock);
-  setMetric("#metricExpiry", data.metrics.expiry_alerts);
+  const metrics = data.metrics || {};
+  setMetric("#metricProducts", metrics.products);
+  setMetric("#metricWarehouses", metrics.warehouses);
+  setMetric("#metricUnits", metrics.total_units);
+  setMetric("#metricLowStock", metrics.low_stock);
+  setMetric("#metricExpiry", metrics.expiry_alerts);
   renderUtilization(data.utilization);
   renderStockWatch(data.stock_watch);
   renderAlerts(data.alerts);
@@ -143,7 +152,8 @@ async function loadDashboard() {
 
 async function loadTable(name = state.currentTable) {
   state.currentTable = name;
-  const { rows } = await api(`/api/table/${name}`);
+  const tableData = await api(`/api/table/${name}`);
+  const rows = Array.isArray(tableData.rows) ? tableData.rows : [];
   const table = $("#dataTable");
   if (!rows.length) {
     table.innerHTML = `<tbody><tr><td class="empty-state">No rows yet. Use the transaction panel to create fresh records.</td></tr></tbody>`;
@@ -230,9 +240,9 @@ async function submitProduct(event) {
 
 async function loadOptions() {
   const options = await api("/api/options");
-  state.products = options.products;
-  state.warehouses = options.warehouses;
-  state.suppliers = options.suppliers;
+  state.products = Array.isArray(options.products) ? options.products : [];
+  state.warehouses = Array.isArray(options.warehouses) ? options.warehouses : [];
+  state.suppliers = Array.isArray(options.suppliers) ? options.suppliers : [];
   populateOptions();
 }
 
