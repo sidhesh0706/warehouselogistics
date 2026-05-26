@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 import json
 import mimetypes
 import os
+import re
 import sqlite3
 
 
@@ -304,7 +305,11 @@ def require_text(payload, key):
 
 
 def add_product(payload):
-    supplier_id = require_int(payload, "supplier_id")
+    supplier_id = None
+    supplier_name = (payload.get("supplier_name") or "").strip()
+    supplier_id_value = (payload.get("supplier_id") or "").strip()
+    if supplier_id_value:
+        supplier_id = require_int(payload, "supplier_id")
     product_name = require_text(payload, "product_name")
     sku = require_text(payload, "sku").upper()
     category = require_text(payload, "category")
@@ -315,12 +320,39 @@ def add_product(payload):
         raise ValueError("expiry_required must be 0 or 1.")
 
     with connect() as conn:
-        supplier = conn.execute(
-            "SELECT supplier_id FROM suppliers WHERE supplier_id = ?",
-            (supplier_id,),
-        ).fetchone()
-        if not supplier:
-            raise ValueError("Supplier not found.")
+        if supplier_id is not None:
+            supplier = conn.execute(
+                "SELECT supplier_id FROM suppliers WHERE supplier_id = ?",
+                (supplier_id,),
+            ).fetchone()
+            if not supplier:
+                raise ValueError("Supplier not found.")
+        else:
+            if not supplier_name:
+                raise ValueError("supplier_name is required.")
+            supplier = conn.execute(
+                "SELECT supplier_id FROM suppliers WHERE lower(supplier_name) = lower(?)",
+                (supplier_name,),
+            ).fetchone()
+            if supplier:
+                supplier_id = supplier["supplier_id"]
+            else:
+                slug = re.sub(r"[^a-z0-9]+", "-", supplier_name.lower()).strip("-") or "custom-supplier"
+                email = f"{slug}@custom-supplier.local"
+                suffix = 2
+                while conn.execute("SELECT 1 FROM suppliers WHERE email = ?", (email,)).fetchone():
+                    email = f"{slug}-{suffix}@custom-supplier.local"
+                    suffix += 1
+                cursor = conn.execute(
+                    """
+                    INSERT INTO suppliers (
+                        supplier_name, contact_person, phone, email, address
+                    )
+                    VALUES (?, 'Not provided', 'Not provided', ?, 'Custom supplier added from dashboard')
+                    """,
+                    (supplier_name, email),
+                )
+                supplier_id = cursor.lastrowid
         cursor = conn.execute(
             """
             INSERT INTO products (

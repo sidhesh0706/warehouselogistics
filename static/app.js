@@ -68,6 +68,12 @@ function populateOptions() {
   document.querySelectorAll('select[name="supplier_id"]').forEach((select) => {
     fillSelect(select, state.suppliers, "supplier_id", (row) => row.supplier_name);
   });
+  const supplierOptions = $("#supplierOptions");
+  if (supplierOptions) {
+    supplierOptions.innerHTML = state.suppliers.map((row) => (
+      `<option value="${row.supplier_name}"></option>`
+    )).join("");
+  }
 }
 
 function renderUtilization(rows) {

@@ -161,7 +161,8 @@
             </form>
 
             <form id="productForm" class="movement-form product-form">
-              <label>Supplier<select name="supplier_id" required></select></label>
+              <label>Supplier Name<input name="supplier_name" list="supplierOptions" placeholder="Enter supplier name" required></label>
+              <datalist id="supplierOptions"></datalist>
               <label>Product Name<input name="product_name" placeholder="Custom Product Case" required></label>
               <label>SKU<input name="sku" placeholder="CUSTOM-SKU-001" required></label>
               <label>Category<input name="category" placeholder="Electronics / Food / Medicine" required></label>
