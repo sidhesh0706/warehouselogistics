@@ -86,6 +86,17 @@ Then open `http://127.0.0.1:8000`.
 - Frontend/backend sync: receive, ship, transfer, add/update/delete product, remove order, clear demo data, and restore demo data all update SQLite first and then reload frontend values from API `SELECT` queries. Trigger-created `reorder_alerts` and `expiry_alerts` can also be viewed from the frontend database table selector.
 - Platform rule: this is a browser-based web application, not an Android or iOS app.
 
+## Review CLI Tables
+
+Use these commands in the PyCharm terminal to show trigger and procedure-style activity in tabular form:
+
+```powershell
+py -3.12 review_cli.py triggers
+py -3.12 review_cli.py demo-trigger
+py -3.12 review_cli.py alerts
+py -3.12 review_cli.py actions
+```
+
 ## Database Logic
 
 - Shipping an order deducts stock using earliest-expiry inventory first.
