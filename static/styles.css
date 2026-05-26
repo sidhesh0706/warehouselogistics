@@ -685,13 +685,17 @@ button[type="submit"] {
 }
 
 .maintenance-actions {
+  grid-column: span 2;
   align-self: end;
   display: flex;
   gap: 10px;
+  min-width: 0;
 }
 
 .maintenance-actions button {
   flex: 1;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 label {

@@ -199,7 +199,7 @@
               </select></label>
               <div class="maintenance-actions">
                 <button type="submit">Update Product</button>
-                <button id="deleteProductButton" class="utility-button danger-button" type="button" disabled>Delete Product</button>
+                <button id="deleteProductButton" class="utility-button danger-button" type="button" disabled>Delete</button>
               </div>
             </form>
             <p id="formMessage" class="form-message" aria-live="polite"></p>
@@ -263,6 +263,8 @@
               <option value="orders">Orders</option>
               <option value="movements">Stock Movements</option>
               <option value="inventory_view">Inventory View</option>
+              <option value="reorder_alerts">Reorder Alerts</option>
+              <option value="expiry_alerts">Expiry Alerts</option>
               <option value="action_logs">Action Logs</option>
             </select>
             <a class="export-button" href="/api/action-log/export" download="warehouse_action_log.csv">Export Log</a>

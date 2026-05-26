@@ -83,7 +83,7 @@ Then open `http://127.0.0.1:8000`.
 - Primary keys and foreign keys: each table has a primary key, and all operational tables are connected through product, supplier, warehouse, inventory, or order relationships.
 - Minimum 5 records: `seed.sql` loads at least 5 records for each core table, and trigger-created alert tables are populated from seeded low-stock and expiry data.
 - SQL functionality: `review_demo.sql` demonstrates `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `ALTER TABLE`, `VIEW`, and trigger behavior.
-- Frontend/backend sync: receive, ship, transfer, add/update/delete product, remove order, clear demo data, and restore demo data all update SQLite first and then reload frontend values from API `SELECT` queries.
+- Frontend/backend sync: receive, ship, transfer, add/update/delete product, remove order, clear demo data, and restore demo data all update SQLite first and then reload frontend values from API `SELECT` queries. Trigger-created `reorder_alerts` and `expiry_alerts` can also be viewed from the frontend database table selector.
 - Platform rule: this is a browser-based web application, not an Android or iOS app.
 
 ## Database Logic

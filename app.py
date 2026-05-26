@@ -70,6 +70,22 @@ TABLE_QUERIES = {
         FROM inventory_overview
         ORDER BY warehouse_name, product_name, bin_location
     """,
+    "reorder_alerts": """
+        SELECT r.alert_id, p.product_name, p.sku, w.warehouse_name,
+               r.current_quantity, r.reorder_level, r.alert_status, r.created_at
+        FROM reorder_alerts r
+        JOIN products p ON p.product_id = r.product_id
+        JOIN warehouses w ON w.warehouse_id = r.warehouse_id
+        ORDER BY r.created_at DESC, r.alert_id DESC
+    """,
+    "expiry_alerts": """
+        SELECT e.alert_id, p.product_name, p.sku, w.warehouse_name,
+               e.expiry_date, e.days_to_expiry, e.alert_status, e.created_at
+        FROM expiry_alerts e
+        JOIN products p ON p.product_id = e.product_id
+        JOIN warehouses w ON w.warehouse_id = e.warehouse_id
+        ORDER BY e.created_at DESC, e.alert_id DESC
+    """,
     "action_logs": """
         SELECT log_id, related_product_id, action_type, entity_name, entity_id, summary, details, created_at
         FROM action_logs
