@@ -227,14 +227,15 @@ async function removeOrder(orderId) {
 
 async function submitProduct(event) {
   event.preventDefault();
+  const form = event.currentTarget;
   setMessage("Adding product to catalog...");
   try {
     const data = await api("/api/product", {
       method: "POST",
-      body: JSON.stringify(formPayload(event.currentTarget)),
+      body: JSON.stringify(formPayload(form)),
     });
     setMessage(data.message);
-    event.currentTarget.reset();
+    form.reset();
     await loadOptions();
     await loadDashboard();
     $("#tableSelect").value = "products";
